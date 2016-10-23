@@ -1,0 +1,1 @@
+# latch-plugin
