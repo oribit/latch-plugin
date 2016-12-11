@@ -1,5 +1,6 @@
 import sys, os
 from shutil import copyfile
+from shutil import copytree
 
 print "Welcome to the installation process for Latch Plugin for Mosquitto."
 print "Before starting this script, be sure you already created the application through the web of Latch as the documentation explains, and all prerequisites are matched."
@@ -11,6 +12,8 @@ filepath = filepath[0:filepath.rindex('/')]
 directory = raw_input("Introduce the directory where you want to install Latch Plugin (" + filepath + ")")
 if directory == '':
     directory = filepath
+
+# Pyauth library
 pythonpath = sys.path
 librarypath = ''
 pyauth_path = raw_input("Introduce the path where pyauth plugin (auth_plugin_pyauth.so) is intalled: ")
@@ -60,7 +63,7 @@ latch_conf_dir = '/etc/mosquitto/plugin/latch'
 # Makedirs creates all directories in the path that doesn't exist
 os.makedirs(latch_conf_dir + '/tools')
 # Copying/creating files files
-copyfile('./latch.conf', latch_conf_dir + '/latch.conf')
+copyfile('./latch.conf.example', latch_conf_dir + '/latch.conf')
 f = open(latch_conf_dir + '/latch.accounts', 'w')
 f.close()
 f = open(latch_conf_dir + '/latch.instances', 'w')
@@ -73,5 +76,17 @@ copyfile('./tools/instances_op.py', latch_conf_dir + '/tools/instances_op.py')
 copyfile('./tools/pair_op.py', latch_conf_dir + '/tools/pair_op.py')
 copyfile('./tools/users_op.py', latch_conf_dir + '/tools/users_op.py')
 
+if not os.path.isdir(directory):
+    os.makedirs(directory)
+copyfile('mosquitto_latch.py', directory + '/mosquitto_latch.py')
+copyfile('mosquitto_latch_bag.py', directory + '/mosquitto_latch_bag.py')
+copytree('latch_sdk', directory + '/latch_sdk')
+# Changing permissions
+os.system('chown -R mosquitto ' + latch_conf_dir + '/*')
+
+# Creating links for python files
+os.system('ln -s ' + directory + '/latch_sdk ' + librarypath + '/latch_sdk')
+os.system('ln -s ' + directory + '/mosquitto_latch.py ' + librarypath + '/mosquitto_latch.py')
+os.system('ln -s ' + directory + '/mosquitto_latch_bag.py ' + librarypath + '/mosquitto_latch_bag.py')
 
 exit()
