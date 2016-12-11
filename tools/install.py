@@ -7,6 +7,7 @@ print "Before starting this script, be sure you already created the application 
 
 applicationId = raw_input("Introduce the Application Id: ")
 secret = raw_input("Introduce the secret: ")
+
 filepath = os.path.realpath(__file__)
 filepath = filepath[0:filepath.rindex('/')]
 directory = raw_input("Introduce the directory where you want to install Latch Plugin (" + filepath + ")")
@@ -81,12 +82,62 @@ if not os.path.isdir(directory):
 copyfile('mosquitto_latch.py', directory + '/mosquitto_latch.py')
 copyfile('mosquitto_latch_bag.py', directory + '/mosquitto_latch_bag.py')
 copytree('latch_sdk', directory + '/latch_sdk')
-# Changing permissions
-os.system('chown -R mosquitto ' + latch_conf_dir + '/*')
 
 # Creating links for python files
 os.system('ln -s ' + directory + '/latch_sdk ' + librarypath + '/latch_sdk')
 os.system('ln -s ' + directory + '/mosquitto_latch.py ' + librarypath + '/mosquitto_latch.py')
 os.system('ln -s ' + directory + '/mosquitto_latch_bag.py ' + librarypath + '/mosquitto_latch_bag.py')
 
-exit()
+# Creating operations publish/subscribe
+import latch_sdk.latch as latch
+api = latch.Latch(applicationId, secretkey)
+latchResponse = api.createOperation(applicationId, 'publish', False, False)
+if not latchResponse.get_error() == '':
+    print 'Error creating Publish operation. Installation aborted at 90%.'
+    print 'Please, edit the file', latch_conf_dir + '/latch.conf', 'adding the values for app_id, secret_key, publish and subscribe operations.'
+    exit(-1)
+publishId = latchResponse.get_data()
+publishId = publishId['operationId']
+
+latchResponse = api.createOperation(applicationId, 'subscribe', False, False)
+if not latchResponse.get_error() == '':
+    print 'Error creating Subscribe operation. Installation aborted at 90%.'
+    print 'Please, edit the file', latch_conf_dir + '/latch.conf', 'adding the values for app_id, secret_key, publish and subscribe operations.'
+    exit(-1)
+subscribeId = latchResponse.get_data()
+subscribeId = subscribeId['operationId']
+
+# Preparing latch.conf
+f = open(latch_conf_dir + '/latch.conf')
+all_lines = f.readlines()
+f.close()
+f = open(latch_conf_dir + '/latch.conf', 'w')
+for line in all_lines:
+    if line.startswith('app_id='):
+        line = line.strip('\n')
+        tline = line.split('=')
+        tline[1] = applicationId
+        line = tline[0] + '=' + tline[1] + '\n'
+    elif line.startswith('secret_key='):
+        line = line.strip('\n')
+        tline = line.split('=')
+        tline[1] = secret
+        line = tline[0] + '=' + tline[1] + '\n'
+    elif line.startswith('publish='):
+        line = line.strip('\n')
+        tline = line.split('=')
+        tline[1] = publishId
+        line = tline[0] + '=' + tline[1] + '\n'
+    elif line.startswith('subscribe='):
+        line = line.strip('\n')
+        tline = line.split('=')
+        tline[1] = subscribeId
+        line = tline[0] + '=' + tline[1] + '\n'
+    f.write(line)
+f.close()
+
+# Changing permissions
+os.system('chown -R mosquitto ' + latch_conf_dir + '/*')
+
+print 'Congratulations! Installation finished with no errors.'
+exit(0)
