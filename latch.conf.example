@@ -1,0 +1,41 @@
+#
+# Configuration file for Latch Mosquitto plugin
+#
+
+# Instance mode
+# - dynamic : every new topic received creates a new instance.
+# - static (DEFAULT): new topics will be ignored. Only existent topics will be evaluated
+#   and it's not possible to create new ones dynamically.
+#
+#instance_mode=static
+
+# Security mode
+# - open : it's not needed any user / password. (default)
+# - password : it's needed a user / password. (for ALL publishers/subscribers)
+#
+#security_mode=open
+
+# Identify your Application
+# Application ID value
+#
+app_id=<xxxxxxxxxxxxxxxxxxxxxxxxx>
+
+# Secret key value
+#
+secret_key=<xxxxxxxxxxxxxxxxxxxxxxxxx>
+
+# Latch host value
+#
+latch_host=https://latch.elevenpaths.com
+
+#
+# Default action when latch is not available
+# Options: open, close
+#
+default_action=open
+
+# Operations (both mandatories)
+#
+publish=<xxxxxxxxxxxxxxxxxxxxxxxxx>
+subscribe=<xxxxxxxxxxxxxxxxxxxxxxxxx>
+
