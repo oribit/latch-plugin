@@ -18,14 +18,7 @@ def backupFile(filename):
     backupfile = filename + '.1'
     copyfile(filename, backupfile)
 
-filepath = os.path.realpath(__file__)
-filepath = filepath[0:filepath.rindex('/')]
-if "tools" in filepath:
-    t = filepath.split('/')
-    filepath = ''
-    for i in t:
-        if i and i != "tools":
-            filepath = filepath + '/' + i
+filepath = '/etc/mosquitto/plugin/latch'
 
 f = open(filepath + '/latch.conf')
 for line in f:

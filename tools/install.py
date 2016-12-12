@@ -3,16 +3,20 @@ from shutil import copyfile
 from shutil import copytree
 
 print "Welcome to the installation process for Latch Plugin for Mosquitto."
-print "Before starting this script, be sure you already created the application through the web of Latch as the documentation explains, and all prerequisites are matched."
+print "Before starting this script, be sure you already created the application through the Latch web as the documentation explains,"
+print "and all prerequisites are matched."
 
 applicationId = raw_input("Introduce the Application Id: ")
 secret = raw_input("Introduce the secret: ")
 
-filepath = os.path.realpath(__file__)
-filepath = filepath[0:filepath.rindex('/')]
-directory = raw_input("Introduce the directory where you want to install Latch Plugin (" + filepath + ")")
-if directory == '':
-    directory = filepath
+directory = os.path.realpath(__file__)
+directory = directory[0:directory.rindex('/')]
+if "tools" in directory:
+    t = directory.split('/')
+    directory = ''
+    for i in t:
+        if i and i != "tools":
+            directory = directory + '/' + i
 
 # Pyauth library
 pythonpath = sys.path
@@ -54,9 +58,9 @@ if not os.path.isfile(mosquitto_conf_file):
 
 # Adding configuration to Mosquitto
 f = open(mosquitto_conf_file, 'a')
-    f.write('auth_plugin '+ pyauth_path + '\n')
-    f.write('auth_opt_pyauth_module mosquitto_latch\n')
-    f.write('auth_opt_latch_conf latch.conf\n')
+f.write('auth_plugin '+ pyauth_path + '\n')
+f.write('auth_opt_pyauth_module mosquitto_latch\n')
+f.write('auth_opt_latch_conf latch.conf\n')
 f.close()
 
 # Creating directories for latch configurationd and tools files
@@ -77,12 +81,6 @@ copyfile('./tools/instances_op.py', latch_conf_dir + '/tools/instances_op.py')
 copyfile('./tools/pair_op.py', latch_conf_dir + '/tools/pair_op.py')
 copyfile('./tools/users_op.py', latch_conf_dir + '/tools/users_op.py')
 
-if not os.path.isdir(directory):
-    os.makedirs(directory)
-copyfile('mosquitto_latch.py', directory + '/mosquitto_latch.py')
-copyfile('mosquitto_latch_bag.py', directory + '/mosquitto_latch_bag.py')
-copytree('latch_sdk', directory + '/latch_sdk')
-
 # Creating links for python files
 os.system('ln -s ' + directory + '/latch_sdk ' + librarypath + '/latch_sdk')
 os.system('ln -s ' + directory + '/mosquitto_latch.py ' + librarypath + '/mosquitto_latch.py')
@@ -90,8 +88,8 @@ os.system('ln -s ' + directory + '/mosquitto_latch_bag.py ' + librarypath + '/mo
 
 # Creating operations publish/subscribe
 import latch_sdk.latch as latch
-api = latch.Latch(applicationId, secretkey)
-latchResponse = api.createOperation(applicationId, 'publish', False, False)
+api = latch.Latch(applicationId, secret)
+latchResponse = api.createOperation(applicationId, 'publish', 'DISABLED', 'DISABLED')
 if not latchResponse.get_error() == '':
     print 'Error creating Publish operation. Installation aborted at 90%.'
     print 'Please, edit the file', latch_conf_dir + '/latch.conf', 'adding the values for app_id, secret_key, publish and subscribe operations.'
@@ -99,7 +97,7 @@ if not latchResponse.get_error() == '':
 publishId = latchResponse.get_data()
 publishId = publishId['operationId']
 
-latchResponse = api.createOperation(applicationId, 'subscribe', False, False)
+latchResponse = api.createOperation(applicationId, 'subscribe', 'DISABLED', 'DISABLED')
 if not latchResponse.get_error() == '':
     print 'Error creating Subscribe operation. Installation aborted at 90%.'
     print 'Please, edit the file', latch_conf_dir + '/latch.conf', 'adding the values for app_id, secret_key, publish and subscribe operations.'
@@ -140,4 +138,6 @@ f.close()
 os.system('chown -R mosquitto ' + latch_conf_dir + '/*')
 
 print 'Congratulations! Installation finished with no errors.'
+print 'Please, remember you need to create a user to start to user Latch.'
+print 'You can do it with executing: python ./tools/users_op.py'
 exit(0)

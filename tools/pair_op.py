@@ -49,14 +49,7 @@ def check_user(filename, user, password):
     f.close()
     return user_ok
 
-filepath = os.path.realpath(__file__)
-filepath = filepath[0:filepath.rindex('/')]
-if "tools" in filepath:
-    t = filepath.split('/')
-    filepath = ''
-    for i in t:
-        if i and i != "tools":
-            filepath = filepath + '/' + i
+filepath = filepath = '/etc/mosquitto/plugin/latch'
 
 options = parse_config(filepath + '/latch.conf')
 
