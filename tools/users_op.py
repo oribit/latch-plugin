@@ -9,7 +9,7 @@ p = hashlib.md5()
 p.update(password)
 password = p.hexdigest()
 
-f = open('/etc/mosquitto/plugin/latch/latch.users', 'a')
+f = open('/etc/mosquitto/plugin/latch/mosquitto.users', 'a')
 f.write(user + '=' + password + '\n')
 f.close()
 
